@@ -11,6 +11,9 @@ permissions:
 jobs:
   update-links:
     runs-on: ubuntu-latest
+    # 设置时区为东八区
+    env:
+      TZ: Asia/Shanghai
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3

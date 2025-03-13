@@ -3,7 +3,7 @@ import json
 import re
 import time
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, TypedDict
 import httpx
 from pathlib import Path
@@ -15,6 +15,11 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 logger = logging.getLogger("cursor_updater")
+
+# 获取东八区时间（UTC+8）
+def get_utc8_time() -> datetime:
+    """返回东八区（UTC+8）的当前时间"""
+    return datetime.utcnow() + timedelta(hours=8)
 
 # 类型定义
 class PlatformInfo(TypedDict):
@@ -184,12 +189,14 @@ async def update_readme(force_update=False) -> bool:
     Returns:
         更新是否成功
     """
-    logger.info(f"开始更新检查 - {datetime.now().isoformat()}")
+    # 使用东八区时间
+    current_time = get_utc8_time()
+    logger.info(f"开始更新检查 - {current_time.isoformat()}")
 
     # 收集所有URL和版本
     results: Dict[str, Dict[str, VersionInfo]] = {}
     latest_version = '0.0.0'
-    current_date = format_date(datetime.now())
+    current_date = format_date(current_time)
 
     # 获取所有平台下载URL
     for os_key, os_data in PLATFORMS.items():
@@ -351,9 +358,9 @@ async def update_readme(force_update=False) -> bool:
 
     # 保存更新的README
     try:
-        # 更新"脚本最后更新"时间
-        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        readme_content = re.sub(r'脚本最后更新: `[^`]*`', f'脚本最后更新: `{current_time}`', readme_content)
+        # 更新"脚本最后更新"时间，使用东八区时间
+        current_time_str = get_utc8_time().strftime('%Y-%m-%d %H:%M:%S')
+        readme_content = re.sub(r'脚本最后更新: `[^`]*`', f'脚本最后更新: `{current_time_str}`', readme_content)
 
         with open(readme_path, 'w', encoding='utf-8') as f:
             f.write(readme_content)
@@ -484,6 +491,7 @@ __all__ = [
     'save_version_history',
     'extract_version',
     'format_date',
+    'get_utc8_time',
     'main'
 ]
 
