@@ -6,7 +6,7 @@ Cursor changelog：[Official Link](https://www.cursor.com/changelog)
 
 官网最新版本：[Official Link](https://www.cursor.com/cn/downloads)
 
-脚本最后更新: `2025-03-13 18:06:34`
+脚本最后更新: `2025-03-13 18:08:38`
 
 | Version | Date | Mac Installer | Windows Installer | Linux Installer |
 | --- | --- | --- | --- | --- |
