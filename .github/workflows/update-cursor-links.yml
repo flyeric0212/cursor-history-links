@@ -30,7 +30,7 @@ jobs:
 
       - name: Update lock file
         run: |
-          poetry lock --no-update
+          poetry lock
 
       - name: Install dependencies
         run: |
@@ -50,6 +50,6 @@ jobs:
         run: |
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"
-          git add README.md version-history.json
+          git add README.md version-history.json poetry.lock
           git commit -m "Update Cursor download links"
           git push
