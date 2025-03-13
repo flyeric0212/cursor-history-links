@@ -1,6 +1,6 @@
 
 ## Git 代码提交规范
-git 提交记录样例：[type]: [description]。
+git 提交记录样例：[type]: [description]。一个具体的例子, docs: 更新 README 文件。
 以下是 type 的枚举值：
 - feat: 新增功能
 - fix: 修复 bug
