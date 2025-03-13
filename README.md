@@ -1,45 +1,7 @@
-# Cursor 历史下载链接项目
+# Cursor Pro Free
 
-## 项目依赖管理
-
-本项目使用Poetry进行依赖管理。Poetry是一个Python依赖管理和打包工具，它使依赖管理更简单和可靠。
-
-### 安装依赖
-
-```bash
-# 安装所有依赖
-poetry install
-
-# 激活虚拟环境
-poetry shell
-```
-
-### 添加新依赖
-
-```bash
-# 添加生产依赖
-poetry add package-name
-
-# 添加开发依赖
-poetry add --dev package-name
-```
-
-### 运行脚本
-
-```bash
-# 在Poetry环境中运行脚本
-poetry run python src/update_cursor_links.py
-
-# 或者先激活环境后运行
-poetry shell
-python src/update_cursor_links.py
-```
-
-### 导出requirements.txt（如需要）
-
-```bash
-poetry export -f requirements.txt --output requirements.txt
-```
+## Cursor Pro Fee 工具使用
+TODO
 
 ## Cursor 历史下载链接
 
