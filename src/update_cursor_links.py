@@ -3,7 +3,7 @@ import json
 import re
 import time
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Any, TypedDict
 import httpx
 from pathlib import Path
@@ -19,7 +19,7 @@ logger = logging.getLogger("cursor_updater")
 # 获取东八区时间（UTC+8）
 def get_utc8_time() -> datetime:
     """返回东八区（UTC+8）的当前时间"""
-    return datetime.utcnow() + timedelta(hours=8)
+    return datetime.now(timezone.utc) + timedelta(hours=8)
 
 # 类型定义
 class PlatformInfo(TypedDict):
