@@ -1,0 +1,18 @@
+[project]
+name = "cursor-pro-free"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Eric",email = "bo.liang0212@outlook.com"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "httpx (>=0.28.1,<0.29.0)",
+    "typing-extensions (>=4.12.2,<5.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

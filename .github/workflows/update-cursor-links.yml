@@ -23,14 +23,18 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
+      - name: Install Poetry
         run: |
           python -m pip install --upgrade pip
-          pip install httpx
+          pip install poetry
+
+      - name: Install dependencies
+        run: |
+          poetry install --no-interaction
 
       - name: Run update script
         run: |
-          python src/update_cursor_links.py
+          poetry run python src/update_cursor_links.py
 
       - name: Check for changes
         id: git-check
