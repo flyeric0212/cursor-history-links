@@ -228,7 +228,7 @@ async def update_readme(force_update=False) -> bool:
 
     # 如果版本已存在且不是强制更新，则退出
     if existing_version_index != -1 and not force_update:
-        logger.info(f"版本 {latest_version} 已存在于版本历史中，无需更新")
+        logger.info(f"版本 {latest_version} 已存在于版本历史中，无需更新 README 和 version-history.json")
         return False
 
     # 读取README
@@ -292,6 +292,7 @@ async def update_readme(force_update=False) -> bool:
     # 重要：在更新README之前保存更新的历史JSON
     try:
         save_version_history(history)
+        logger.info(f"已更新 version-history.json 文件")
     except Exception as error:
         logger.error(f'保存版本历史时出错: {error}')
         # 即使版本历史保存失败，也继续进行README更新
@@ -378,14 +379,14 @@ async def main() -> None:
         start_time = time.time()
         logger.info(f"开始更新过程")
 
-        # 运行更新，强制更新README.md
-        updated = await update_readme(force_update=True)
+        # 运行更新，默认不强制更新
+        updated = await update_readme(force_update=False)
         elapsed_time = int((time.time() - start_time) * 1000)
 
         if updated:
             logger.info(f"更新成功完成，耗时 {elapsed_time}ms。找到新版本。")
         else:
-            logger.info(f"更新完成，耗时 {elapsed_time}ms。未找到新版本。")
+            logger.info(f"更新完成，耗时 {elapsed_time}ms。未找到新版本或版本已存在。")
 
         # 在结束时验证文件完整性
         verify_file_integrity()
