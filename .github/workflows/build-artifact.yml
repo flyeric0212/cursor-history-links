@@ -13,10 +13,21 @@ on:
       - 'cursor_tools.py'
   workflow_dispatch:  # 允许手动触发
 
+# 添加全局权限配置
+permissions:
+  contents: write
+  packages: write
+  actions: write
+
 jobs:
   build:
     name: 构建 ${{ matrix.os }}-${{ matrix.arch }} 版本
     runs-on: ${{ matrix.os }}
+    # 为构建任务添加权限
+    permissions:
+      contents: read
+      packages: write
+      actions: write
     strategy:
       fail-fast: false
       matrix:
@@ -132,6 +143,11 @@ jobs:
     name: 创建发布版本
     needs: build
     runs-on: ubuntu-latest
+    # 为发布任务添加权限
+    permissions:
+      contents: write
+      packages: write
+      actions: write
     # 只在主分支上创建发布
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
