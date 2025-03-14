@@ -38,7 +38,7 @@ jobs:
 
       - name: Run update script
         run: |
-          poetry run python src/update_cursor_links.py
+          poetry run python update_cursor_links.py
 
       - name: Check for changes
         id: git-check

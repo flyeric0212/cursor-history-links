@@ -1,7 +1,52 @@
 # Cursor Pro Free
 
-## Cursor Pro Fee 工具使用
-TODO
+
+
+## 试用限制解决方案
+
+当使用 Cursor 编辑器（版本 0.46 到 0.47）一段时间后，可能会遇到以下提示：
+
+- "You've reached your trial request limit."（您已达到试用请求限制）
+- "Too many free trial accounts used on this machine. Please upgrade to pro."（此机器上使用了太多免费试用账户，请升级到专业版）
+
+本仓库提供了一键执行脚本 `run.sh`，通过重置 Cursor 配置文件中的设备 ID 来解决试用限制问题。脚本支持 macOS、Linux 和 Windows (通过 Git Bash 或 WSL)。
+
+### 使用方法
+
+1. **确保完全关闭 Cursor 应用程序**
+   
+   - 在 Mac 上：右键点击 Dock 中的 Cursor 图标，选择"退出"
+   - 在 Windows 上：在任务管理器中结束所有 Cursor 相关进程
+   - 在 Linux 上：使用 `killall Cursor` 命令
+   
+2. **下载并运行脚本**
+   ```bash
+   # 方法1：直接从 GitHub 运行
+   bash -c "$(curl -fsSL https://raw.githubusercontent.com/flyeric0212/cursor-pro-free/main/scripts/run.sh)"
+   
+   # 方法2：克隆仓库后运行
+   git clone https://github.com/flyeric0212/cursor-pro-free.git
+   cd cursor-pro-free
+   bash scripts/run.sh
+   ```
+
+3. **从菜单中选择操作**
+   - 脚本会显示一个菜单，选择 `1` 执行重置 Cursor 设备 ID 操作
+   - 按照提示完成操作
+
+4. **重新启动 Cursor**
+   - 脚本执行完成后，重新启动 Cursor 应用程序
+   - 登录您的账户（或创建新账户）
+
+### 注意事项
+
+- 每次遇到试用限制时，都需要重新运行此脚本
+- 脚本会自动备份原始配置文件，以防出现问题
+- 如果 Cursor 在后台运行，重置可能不会成功
+
+### 免责声明
+
+本工具仅供学习和研究目的使用。使用本工具可能违反 Cursor 的服务条款。使用者需自行承担使用本工具的风险和责任。
 
 ## Cursor 历史下载链接
 
@@ -9,11 +54,10 @@ Cursor changelog：[Official Link](https://www.cursor.com/changelog)
 
 官网最新版本：[Official Link](https://www.cursor.com/cn/downloads)
 
-脚本最后更新: `2025-03-14 14:17:44`
+脚本最后更新: `2025-03-13 18:08:38`
 
 | Version | Date | Mac Installer | Windows Installer | Linux Installer |
 | --- | --- | --- | --- | --- |
-| 0.47.4 | 2025-03-14 | [darwin-universal](https://downloads.cursor.com/production/8f8a2000673d2c48f6cac5eea2f3f9f2ed5e4ec2/darwin/universal/Cursor-darwin-universal.dmg)<br>[darwin-x64](https://downloads.cursor.com/production/8f8a2000673d2c48f6cac5eea2f3f9f2ed5e4ec2/darwin/x64/Cursor-darwin-x64.dmg)<br>[darwin-arm64](https://downloads.cursor.com/production/8f8a2000673d2c48f6cac5eea2f3f9f2ed5e4ec2/darwin/arm64/Cursor-darwin-arm64.dmg) | [win32-x64](https://downloads.cursor.com/production/8f8a2000673d2c48f6cac5eea2f3f9f2ed5e4ec2/win32/x64/user-setup/CursorUserSetup-x64-0.47.4.exe)<br>[win32-arm64](https://downloads.cursor.com/production/8f8a2000673d2c48f6cac5eea2f3f9f2ed5e4ec2/win32/arm64/user-setup/CursorUserSetup-arm64-0.47.4.exe) | [linux-x64](https://downloads.cursor.com/production/client/linux/x64/appimage/Cursor-0.47.4-8f8a2000673d2c48f6cac5eea2f3f9f2ed5e4ec2.deb.glibc2.25-x86_64.AppImage)<br>[linux-arm64](https://downloads.cursor.com/production/client/linux/arm64/appimage/Cursor-0.47.4-8f8a2000673d2c48f6cac5eea2f3f9f2ed5e4ec2.deb.glibc2.28-aarch64.AppImage) |
 | 0.47.3 | 2025-03-13 | [darwin-universal](https://downloads.cursor.com/production/dab1538cd064aebd4292f9de48b05022c974aff6/darwin/universal/Cursor-darwin-universal.dmg)<br>[darwin-x64](https://downloads.cursor.com/production/dab1538cd064aebd4292f9de48b05022c974aff6/darwin/x64/Cursor-darwin-x64.dmg)<br>[darwin-arm64](https://downloads.cursor.com/production/dab1538cd064aebd4292f9de48b05022c974aff6/darwin/arm64/Cursor-darwin-arm64.dmg) | [win32-x64](https://downloads.cursor.com/production/dab1538cd064aebd4292f9de48b05022c974aff6/win32/x64/user-setup/CursorUserSetup-x64-0.47.3.exe)<br>[win32-arm64](https://downloads.cursor.com/production/dab1538cd064aebd4292f9de48b05022c974aff6/win32/arm64/user-setup/CursorUserSetup-arm64-0.47.3.exe) | [linux-x64](https://downloads.cursor.com/production/client/linux/x64/appimage/Cursor-0.47.3-dab1538cd064aebd4292f9de48b05022c974aff6.deb.glibc2.25-x86_64.AppImage)<br>[linux-arm64](https://downloads.cursor.com/production/client/linux/arm64/appimage/Cursor-0.47.3-dab1538cd064aebd4292f9de48b05022c974aff6.deb.glibc2.28-aarch64.AppImage) |
 | 0.47.2 | 2025-03-13 | [darwin-universal](https://downloads.cursor.com/production/bed609aa4a57e9d82664006f152d3f77589eed10/darwin/universal/Cursor-darwin-universal.dmg)<br>[darwin-x64](https://downloads.cursor.com/production/bed609aa4a57e9d82664006f152d3f77589eed10/darwin/x64/Cursor-darwin-x64.dmg)<br>[darwin-arm64](https://downloads.cursor.com/production/bed609aa4a57e9d82664006f152d3f77589eed10/darwin/arm64/Cursor-darwin-arm64.dmg) |  | [linux-x64](https://downloads.cursor.com/production/client/linux/x64/appimage/Cursor-0.47.2-bed609aa4a57e9d82664006f152d3f77589eed10.deb.glibc2.25-x86_64.AppImage)<br>[linux-arm64](https://downloads.cursor.com/production/client/linux/arm64/appimage/Cursor-0.47.2-bed609aa4a57e9d82664006f152d3f77589eed10.deb.glibc2.28-aarch64.AppImage) |
 | 0.47.1 | 2025-03-11 | [darwin-universal](https://downloads.cursor.com/production/aafb3fe1326c939656bd06f325a9e17679aeec7f/darwin/universal/Cursor-darwin-universal.dmg)<br>[darwin-x64](https://downloads.cursor.com/production/aafb3fe1326c939656bd06f325a9e17679aeec7f/darwin/x64/Cursor-darwin-x64.dmg)<br>[darwin-arm64](https://downloads.cursor.com/production/aafb3fe1326c939656bd06f325a9e17679aeec7f/darwin/arm64/Cursor-darwin-arm64.dmg) | [win32-x64](https://downloads.cursor.com/production/aafb3fe1326c939656bd06f325a9e17679aeec7f/win32/x64/user-setup/CursorUserSetup-x64-0.47.1.exe)<br>[win32-arm64](https://downloads.cursor.com/production/aafb3fe1326c939656bd06f325a9e17679aeec7f/win32/arm64/user-setup/CursorUserSetup-arm64-0.47.1.exe) | [linux-x64](https://downloads.cursor.com/production/client/linux/x64/appimage/Cursor-0.47.1-aafb3fe1326c939656bd06f325a9e17679aeec7f.deb.glibc2.25-x86_64.AppImage)<br>[linux-arm64](https://downloads.cursor.com/production/client/linux/arm64/appimage/Cursor-0.47.1-aafb3fe1326c939656bd06f325a9e17679aeec7f.deb.glibc2.28-aarch64.AppImage) |
