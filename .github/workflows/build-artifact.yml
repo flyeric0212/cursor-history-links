@@ -1,19 +1,7 @@
 name: Build Cursor Tools
 
 on:
-  push:
-    branches: [ main ]
-    paths:
-      - 'cursor_tools.py'
-      - '.github/workflows/build-artifact.yml'
-      - 'pyproject.toml'
-      - '.env'
-      - 'CHANGELOG.md'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'cursor_tools.py'
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:  # 仅允许手动触发
 
 # 只保留全局权限配置
 permissions:
@@ -81,12 +69,12 @@ jobs:
     - name: 获取版本号
       id: get_version
       run: |
-        # 优先从 .env 文件获取版本号
-        if [ -f ".env" ]; then
-          VERSION=$(grep "^VERSION=" .env | cut -d'=' -f2)
-          echo "从 .env 文件获取版本号: $VERSION"
+        # 从 version_config.json 文件获取版本号
+        if [ -f "version_config.json" ]; then
+          VERSION=$(python -c "import json; print(json.load(open('version_config.json'))['VERSION'])")
+          echo "从 version_config.json 文件获取版本号: $VERSION"
         else
-          # 如果 .env 文件不存在，则从 poetry 获取
+          # 如果配置文件不存在，则从 poetry 获取
           VERSION=$(poetry version -s)
           echo "从 poetry 获取版本号: $VERSION"
         fi
@@ -148,8 +136,8 @@ jobs:
     name: 创建发布版本
     needs: build
     runs-on: ubuntu-latest
-    # 只在主分支上创建发布
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # 不再需要检查是否为主分支的推送
+    # if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
     - name: 检出代码
@@ -168,13 +156,13 @@ jobs:
     - name: 获取版本号和应用名称
       id: get_info
       run: |
-        # 优先从 .env 文件获取版本号和应用名称
-        if [ -f ".env" ]; then
-          VERSION=$(grep "^VERSION=" .env | cut -d'=' -f2)
-          APP_NAME=$(grep "^APP_NAME=" .env | cut -d'=' -f2)
-          echo "从 .env 文件获取信息: 版本=$VERSION, 应用=$APP_NAME"
+        # 从 version_config.json 文件获取版本号和应用名称
+        if [ -f "version_config.json" ]; then
+          VERSION=$(python -c "import json; print(json.load(open('version_config.json'))['VERSION'])")
+          APP_NAME=$(python -c "import json; print(json.load(open('version_config.json'))['APP_NAME'])")
+          echo "从 version_config.json 文件获取信息: 版本=$VERSION, 应用=$APP_NAME"
         else
-          # 如果 .env 文件不存在，则使用默认值
+          # 如果配置文件不存在，则使用默认值
           VERSION=$(poetry version -s)
           APP_NAME="Cursor 工具集"
           echo "使用默认信息: 版本=$VERSION, 应用=$APP_NAME"
