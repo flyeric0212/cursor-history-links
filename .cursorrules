@@ -1,5 +1,9 @@
 ## 技术栈
 - Python 3.10
+- Poetry 管理依赖
+- GitHub Actions 自动构建和发布
+- 使用 GitHub 作为代码托管平台
+- 使用 Bash 脚本
 
 ## Git 代码提交规范
 git 提交记录样例：[type]: [description]。一个具体的例子, docs: 更新 README 文件。
