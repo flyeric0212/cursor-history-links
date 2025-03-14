@@ -7,6 +7,8 @@ on:
       - 'cursor_tools.py'
       - '.github/workflows/build-artifact.yml'
       - 'pyproject.toml'
+      - '.env'
+      - 'CHANGELOG.md'
   pull_request:
     branches: [ main ]
     paths:
@@ -79,7 +81,15 @@ jobs:
     - name: 获取版本号
       id: get_version
       run: |
-        VERSION=$(poetry version -s)
+        # 优先从 .env 文件获取版本号
+        if [ -f ".env" ]; then
+          VERSION=$(grep "^VERSION=" .env | cut -d'=' -f2)
+          echo "从 .env 文件获取版本号: $VERSION"
+        else
+          # 如果 .env 文件不存在，则从 poetry 获取
+          VERSION=$(poetry version -s)
+          echo "从 poetry 获取版本号: $VERSION"
+        fi
         echo "version=$VERSION" >> $GITHUB_OUTPUT
       shell: bash
 
@@ -155,11 +165,23 @@ jobs:
         python -m pip install --upgrade pip
         pip install poetry
 
-    - name: 获取版本号
-      id: get_version
+    - name: 获取版本号和应用名称
+      id: get_info
       run: |
-        VERSION=$(poetry version -s)
+        # 优先从 .env 文件获取版本号和应用名称
+        if [ -f ".env" ]; then
+          VERSION=$(grep "^VERSION=" .env | cut -d'=' -f2)
+          APP_NAME=$(grep "^APP_NAME=" .env | cut -d'=' -f2)
+          echo "从 .env 文件获取信息: 版本=$VERSION, 应用=$APP_NAME"
+        else
+          # 如果 .env 文件不存在，则使用默认值
+          VERSION=$(poetry version -s)
+          APP_NAME="Cursor 工具集"
+          echo "使用默认信息: 版本=$VERSION, 应用=$APP_NAME"
+        fi
         echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "app_name=$APP_NAME" >> $GITHUB_OUTPUT
+      shell: bash
 
     - name: 下载所有构建产物
       uses: actions/download-artifact@v4
@@ -200,73 +222,63 @@ jobs:
         EOF
         chmod +x ./release/cursor-tools-macos
 
-    - name: 创建发布说明
+    - name: 创建简化的发布说明
       id: release_notes
       run: |
         # 从 CHANGELOG.md 中提取当前版本的发布说明
-        VERSION=${{ steps.get_version.outputs.version }}
+        VERSION=${{ steps.get_info.outputs.version }}
         echo "提取版本 v$VERSION 的发布说明"
 
         # 创建临时发布说明文件
         touch RELEASE_NOTES.md
 
-        # 提取当前版本的发布说明
-        SECTION_START=$(grep -n "## v$VERSION" CHANGELOG.md | cut -d':' -f1)
+        # 提取当前版本的发布说明 - 使用更精确的匹配方式
+        if [ -f "CHANGELOG.md" ]; then
+          # 查找版本标题行 (## vX.Y.Z 或 ## vX.Y.Z (日期))
+          VERSION_LINE=$(grep -n "^## v$VERSION" CHANGELOG.md | head -1 | cut -d':' -f1)
 
-        if [ -n "$SECTION_START" ]; then
-          # 找到下一个版本标题或文件结束
-          NEXT_SECTION=$(tail -n +$((SECTION_START+1)) CHANGELOG.md | grep -n "## v" | head -1 | cut -d':' -f1)
+          if [ -n "$VERSION_LINE" ]; then
+            echo "找到版本 v$VERSION 在第 $VERSION_LINE 行"
 
-          if [ -n "$NEXT_SECTION" ]; then
-            # 如果找到下一个版本，提取当前版本到下一个版本之间的内容
-            head -n $((SECTION_START+NEXT_SECTION-1)) CHANGELOG.md | tail -n +$SECTION_START > RELEASE_NOTES.md
+            # 找到下一个版本标题行
+            NEXT_VERSION_LINE=$(tail -n +$((VERSION_LINE+1)) CHANGELOG.md | grep -n "^## v" | head -1)
+
+            if [ -n "$NEXT_VERSION_LINE" ]; then
+              # 计算下一个版本标题的实际行号
+              NEXT_LINE_NUM=$((VERSION_LINE + $(echo $NEXT_VERSION_LINE | cut -d':' -f1)))
+              # 提取当前版本到下一个版本之间的内容
+              sed -n "${VERSION_LINE},${NEXT_LINE_NUM}p" CHANGELOG.md | head -n -1 > RELEASE_NOTES.md
+            else
+              # 如果没有下一个版本，提取到文件结束
+              tail -n +$VERSION_LINE CHANGELOG.md > RELEASE_NOTES.md
+            fi
+
+            echo "✅ 成功提取发布说明"
           else
-            # 如果没有下一个版本，提取到文件结束
-            tail -n +$SECTION_START CHANGELOG.md > RELEASE_NOTES.md
+            echo "⚠️ 在 CHANGELOG.md 中未找到版本 v$VERSION"
+            echo "## ${{ steps.get_info.outputs.app_name }} v$VERSION" > RELEASE_NOTES.md
+            echo "" >> RELEASE_NOTES.md
+            echo "此版本包含以下功能：" >> RELEASE_NOTES.md
+            echo "- 重置设备 ID (解决试用限制)" >> RELEASE_NOTES.md
+            echo "- 禁用自动更新 (锁定版本)" >> RELEASE_NOTES.md
+            echo "- 恢复自动更新功能" >> RELEASE_NOTES.md
           fi
-
-          # 添加下载说明
-          echo "" >> RELEASE_NOTES.md
-          echo "### 下载说明" >> RELEASE_NOTES.md
-          echo "- **Windows**: 下载 \`cursor-tools-windows-x64.exe\`" >> RELEASE_NOTES.md
-          echo "- **macOS**: " >> RELEASE_NOTES.md
-          echo "  - Intel Mac: 下载 \`cursor-tools-macos-x64\`" >> RELEASE_NOTES.md
-          echo "  - Apple Silicon (M1/M2/M3): 下载 \`cursor-tools-macos-arm64\`" >> RELEASE_NOTES.md
-          echo "  - 或下载 \`cursor-tools-macos\` (自动检测架构)" >> RELEASE_NOTES.md
-          echo "- **Linux**: 下载 \`cursor-tools-linux-x64\`" >> RELEASE_NOTES.md
-
-          echo "✅ 成功提取发布说明"
         else
-          echo "⚠️ 在 CHANGELOG.md 中未找到版本 v$VERSION"
-          echo "## Cursor 工具集 v$VERSION" > RELEASE_NOTES.md
+          echo "⚠️ CHANGELOG.md 文件不存在"
+          echo "## ${{ steps.get_info.outputs.app_name }} v$VERSION" > RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "此版本包含以下功能：" >> RELEASE_NOTES.md
           echo "- 重置设备 ID (解决试用限制)" >> RELEASE_NOTES.md
           echo "- 禁用自动更新 (锁定版本)" >> RELEASE_NOTES.md
           echo "- 恢复自动更新功能" >> RELEASE_NOTES.md
-          echo "" >> RELEASE_NOTES.md
-          echo "### 下载说明" >> RELEASE_NOTES.md
-          echo "- **Windows**: 下载 \`cursor-tools-windows-x64.exe\`" >> RELEASE_NOTES.md
-          echo "- **macOS**: " >> RELEASE_NOTES.md
-          echo "  - Intel Mac: 下载 \`cursor-tools-macos-x64\`" >> RELEASE_NOTES.md
-          echo "  - Apple Silicon (M1/M2/M3): 下载 \`cursor-tools-macos-arm64\`" >> RELEASE_NOTES.md
-          echo "  - 或下载 \`cursor-tools-macos\` (自动检测架构)" >> RELEASE_NOTES.md
-          echo "- **Linux**: 下载 \`cursor-tools-linux-x64\`" >> RELEASE_NOTES.md
         fi
 
+        # 添加简化的下载说明
         echo "" >> RELEASE_NOTES.md
-        echo "### 使用方法" >> RELEASE_NOTES.md
-        echo "1. 下载适合您操作系统和架构的可执行文件" >> RELEASE_NOTES.md
-        echo "2. 关闭 Cursor 应用程序" >> RELEASE_NOTES.md
-        echo "3. 运行下载的可执行文件" >> RELEASE_NOTES.md
-        echo "4. 按照提示操作" >> RELEASE_NOTES.md
-        echo "" >> RELEASE_NOTES.md
-        echo "### 命令行参数" >> RELEASE_NOTES.md
-        echo "- `reset`: 重置设备ID，解决试用限制" >> RELEASE_NOTES.md
-        echo "- `disable-update`: 禁用自动更新" >> RELEASE_NOTES.md
-        echo "- `enable-update`: 恢复自动更新" >> RELEASE_NOTES.md
-        echo "- `--force` 或 `-f`: 跳过确认和检查，强制执行" >> RELEASE_NOTES.md
-        echo "- `--version` 或 `-v`: 显示版本信息" >> RELEASE_NOTES.md
+        echo "### 下载" >> RELEASE_NOTES.md
+        echo "- Windows: \`cursor-tools-windows-x64.exe\`" >> RELEASE_NOTES.md
+        echo "- macOS: \`cursor-tools-macos\` (自动检测架构) 或选择特定架构版本" >> RELEASE_NOTES.md
+        echo "- Linux: \`cursor-tools-linux-x64\`" >> RELEASE_NOTES.md
 
     - name: 创建发布
       uses: softprops/action-gh-release@v2
@@ -277,8 +289,8 @@ jobs:
           ./release/cursor-tools-macos-x64
           ./release/cursor-tools-macos-arm64
           ./release/cursor-tools-linux-x64
-        name: Cursor 工具集 v${{ steps.get_version.outputs.version }}
-        tag_name: v${{ steps.get_version.outputs.version }}
+        name: ${{ steps.get_info.outputs.app_name }} v${{ steps.get_info.outputs.version }}
+        tag_name: v${{ steps.get_info.outputs.version }}
         body_path: RELEASE_NOTES.md
         draft: false
         prerelease: false
