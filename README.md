@@ -41,6 +41,7 @@ curl -fsSL https://raw.githubusercontent.com/flyeric0212/cursor-pro-free/main/sc
 - 每次遇到试用限制时，都需要重新运行此脚本
 - 脚本会自动备份原始配置文件，以防出现问题
 - 如果 Cursor 在后台运行，重置可能不会成功
+- 本工具支持最新的 Cursor 0.47.x 版本
 
 ### 免责声明
 
