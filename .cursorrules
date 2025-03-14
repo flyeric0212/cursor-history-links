@@ -15,6 +15,8 @@ git 提交记录样例：[type]: [description]。一个具体的例子, docs: �
 - revert: 回退
 - build: 打包
 
+不要自动提交 git 代码，除非有明确的提示。
+
 ## README.md
 每次修改保留README.md 中的二级目录"Cursor 历史下载链接"部分，不要进行删除。
 
