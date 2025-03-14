@@ -53,8 +53,18 @@ jobs:
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"
 
-          # 暂存所有更改
-          git add README.md version-history.json poetry.lock
+          # 检查哪些文件有更改
+          CHANGED_FILES=$(git diff --name-only)
+          echo "检测到更改的文件: $CHANGED_FILES"
+
+          # 只暂存实际更改的文件
+          git add README.md version-history.json
+
+          # 如果 poetry.lock 有更改，才添加它
+          if echo "$CHANGED_FILES" | grep -q "poetry.lock"; then
+            echo "添加 poetry.lock 文件"
+            git add poetry.lock
+          fi
 
           # 临时提交更改
           git commit -m "临时提交: 更新 Cursor 下载链接"
