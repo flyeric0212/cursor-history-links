@@ -1,6 +1,6 @@
 # Cursor Pro Free
 
-支持最新0.47.x版本
+<div align="center"><strong>支持最新0.47.x版本</strong></div>
 
 一款解决 Cursor 编辑器试用限制的开源工具，帮助开发者无限制使用 AI 编码功能。
 
