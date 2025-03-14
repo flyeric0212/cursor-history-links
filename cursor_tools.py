@@ -291,8 +291,17 @@ def reset_cursor_id() -> bool:
         # 确保父目录存在
         storage_file.parent.mkdir(parents=True, exist_ok=True)
 
-        # 备份原始文件
-        backup_file(storage_file)
+        # 备份原始文件，使用新的文件名格式
+        if storage_file.exists():
+            # 生成随机字符
+            random_suffix = os.urandom(1).hex().upper()
+            # 创建备份文件名：storage.json.202502171423473N.bak
+            backup_filename = f"{storage_file}.{datetime.now().strftime('%Y%m%d%H%M%S')}{random_suffix}.bak"
+            try:
+                shutil.copy2(storage_file, backup_filename)
+                print_success(f"已创建备份: {backup_filename}")
+            except Exception as e:
+                print_error(f"创建备份失败: {e}")
 
         # 读取或创建配置数据
         if not storage_file.exists():
