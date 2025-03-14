@@ -14,8 +14,7 @@ dependencies = [
 
 [tool.poetry]
 name = "cursor-pro-free"
-version = "1.0.0"
-description = "Cursor 工具集 - 重置设备ID和禁用自动更新"
+description = "Cursor 工具集"
 authors = ["Eric <bo.liang0212@outlook.com>"]
 readme = "README.md"
 package-mode = false

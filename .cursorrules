@@ -17,3 +17,11 @@ git 提交记录样例：[type]: [description]。一个具体的例子, docs: �
 
 ## README.md
 每次修改保留README.md 中的二级目录"Cursor 历史下载链接"部分，不要进行删除。
+
+## 更新CHANGELOG.md
+在要求更新CHANGELOG.md时，请按照以下格式进行更新：
+```
+## v1.0.0
+- 新增功能: 重置设备ID
+- 修复bug: 修复设备ID重置失败的问题
+```
