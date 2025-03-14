@@ -1,7 +1,7 @@
 [project]
 name = "cursor-pro-free"
-version = "0.1.0"
-description = ""
+version = "1.0.0"
+description = "Cursor 工具集"
 authors = [
     {name = "Eric",email = "bo.liang0212@outlook.com"}
 ]
@@ -13,7 +13,16 @@ dependencies = [
 ]
 
 [tool.poetry]
+name = "cursor-pro-free"
+version = "1.0.0"
+description = "Cursor 工具集 - 重置设备ID和禁用自动更新"
+authors = ["Eric <bo.liang0212@outlook.com>"]
+readme = "README.md"
 package-mode = false
+
+[tool.poetry.group.dev.dependencies]
+pyinstaller = {version = "^6.12.0", python = ">=3.10,<3.14"}
+pillow = "^10.2.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

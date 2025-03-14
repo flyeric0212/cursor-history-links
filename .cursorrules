@@ -1,3 +1,5 @@
+## 技术栈
+- Python 3.10
 
 ## Git 代码提交规范
 git 提交记录样例：[type]: [description]。一个具体的例子, docs: 更新 README 文件。
@@ -12,3 +14,6 @@ git 提交记录样例：[type]: [description]。一个具体的例子, docs: �
 - chore: 构建过程或辅助工具的变动
 - revert: 回退
 - build: 打包
+
+## README.md
+每次修改保留README.md 中的二级目录"Cursor 历史下载链接"部分，不要进行删除。

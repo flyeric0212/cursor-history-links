@@ -1,6 +1,6 @@
 # Cursor Pro Free
 
-
+支持最新0.47.x版本
 
 ## 试用限制解决方案
 
@@ -9,34 +9,32 @@
 - "You've reached your trial request limit."（您已达到试用请求限制）
 - "Too many free trial accounts used on this machine. Please upgrade to pro."（此机器上使用了太多免费试用账户，请升级到专业版）
 
-本仓库提供了一键执行脚本 `run.sh`，通过重置 Cursor 配置文件中的设备 ID 来解决试用限制问题。脚本支持 macOS、Linux 和 Windows (通过 Git Bash 或 WSL)。
-
 ### 使用方法
 
-1. **确保完全关闭 Cursor 应用程序**
-   
-   - 在 Mac 上：右键点击 Dock 中的 Cursor 图标，选择"退出"
-   - 在 Windows 上：在任务管理器中结束所有 Cursor 相关进程
-   - 在 Linux 上：使用 `killall Cursor` 命令
-   
-2. **下载并运行脚本**
-   ```bash
-   # 方法1：直接从 GitHub 运行
-   bash -c "$(curl -fsSL https://raw.githubusercontent.com/flyeric0212/cursor-pro-free/main/scripts/run.sh)"
-   
-   # 方法2：克隆仓库后运行
-   git clone https://github.com/flyeric0212/cursor-pro-free.git
-   cd cursor-pro-free
-   bash scripts/run.sh
-   ```
+#### 方法一：GitHub 远程一键执行（推荐）
 
-3. **从菜单中选择操作**
-   - 脚本会显示一个菜单，选择 `1` 执行重置 Cursor 设备 ID 操作
-   - 按照提示完成操作
+**Windows 用户**:
+```powershell
+powershell -Command "& {[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -useb https://raw.githubusercontent.com/flyeric0212/cursor-pro-free/main/scripts/run.ps1 | iex}"
+```
 
-4. **重新启动 Cursor**
-   - 脚本执行完成后，重新启动 Cursor 应用程序
-   - 登录您的账户（或创建新账户）
+**macOS/Linux 用户**:
+```bash
+curl -fsSL https://raw.githubusercontent.com/flyeric0212/cursor-pro-free/main/scripts/run.sh | bash
+```
+> 注意：远程脚本会自动设置执行权限。如果遇到权限问题，可以手动下载并执行：
+> ```bash
+> curl -fsSL -o run.sh https://raw.githubusercontent.com/flyeric0212/cursor-pro-free/main/scripts/run.sh
+> chmod +x run.sh
+> ./run.sh
+> ```
+
+#### 方法二：下载可执行文件
+
+1. 从 [Releases](https://github.com/flyeric0212/cursor-pro-free/releases) 页面下载适合您操作系统的可执行文件
+2. 运行下载的可执行文件
+3. 按照提示操作，选择"重置 Cursor 设备 ID"选项
+
 
 ### 注意事项
 
