@@ -2,12 +2,23 @@
 
 支持最新0.47.x版本
 
-## 试用限制解决方案
+一款解决 Cursor 编辑器试用限制的开源工具，帮助开发者无限制使用 AI 编码功能。
+
+## Cursor 工具集
 
 当使用 Cursor 编辑器（版本 0.46 到 0.47）一段时间后，可能会遇到以下提示：
 
 - "You've reached your trial request limit."（您已达到试用请求限制）
 - "Too many free trial accounts used on this machine. Please upgrade to pro."（此机器上使用了太多免费试用账户，请升级到专业版）
+
+### 功能列表
+
+- ✅ 重置设备 ID，解除试用限制
+- ✅ 支持 Windows、macOS 和 Linux 全平台
+- ✅ 提供一键执行脚本和可执行文件两种使用方式
+- ✅ 自动备份原始配置文件
+- ✅ 提供 Cursor 历史版本下载链接
+- ✅ 定期更新支持最新版本
 
 ### 使用方法
 
