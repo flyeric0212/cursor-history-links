@@ -16,10 +16,12 @@ jobs:
       TZ: Asia/Shanghai
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整历史记录，便于合并
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
@@ -50,6 +52,13 @@ jobs:
         run: |
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"
+
+          # 拉取最新更改并合并
+          git pull --rebase origin main
+
+          # 添加更改并提交
           git add README.md version-history.json poetry.lock
-          git commit -m "Update Cursor download links"
+          git commit -m "docs: 更新 Cursor 下载链接"
+
+          # 推送更改
           git push
