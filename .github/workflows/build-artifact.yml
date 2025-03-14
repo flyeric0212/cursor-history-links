@@ -1,4 +1,4 @@
-name: 构建 Cursor 工具集
+name: Build Cursor Tools
 
 on:
   push:
@@ -50,10 +50,10 @@ jobs:
 
     steps:
     - name: 检出代码
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: 设置 Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
 
@@ -123,7 +123,7 @@ jobs:
         poetry run pyinstaller --onefile --clean --name=cursor-tools cursor_tools.py
 
     - name: 上传构建产物
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: cursor-tools-${{ matrix.os }}-${{ matrix.arch }}
         path: dist/${{ matrix.output_name }}
@@ -137,10 +137,10 @@ jobs:
 
     steps:
     - name: 检出代码
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: 设置 Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.10'
 
@@ -156,7 +156,7 @@ jobs:
         echo "version=$VERSION" >> $GITHUB_OUTPUT
 
     - name: 下载所有构建产物
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         path: ./artifacts
 
@@ -263,7 +263,7 @@ jobs:
         echo "- `--version` 或 `-v`: 显示版本信息" >> RELEASE_NOTES.md
 
     - name: 创建发布
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: |
           ./release/cursor-tools-windows-x64.exe
