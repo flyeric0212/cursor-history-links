@@ -1,3 +1,12 @@
+# 注意：此文件已迁移到 .cursor/rules 目录
+# 请使用新的规则文件，此文件将在未来版本中被移除
+
+# 规则已迁移到以下文件：
+# - .cursor/rules/general.mdc：通用规范
+# - .cursor/rules/python.mdc：Python开发规范
+# - .cursor/rules/documentation.mdc：文档规范
+# - .cursor/rules/git.mdc：Git提交规范
+
 ## 技术栈
 - Python 3.10
 - Poetry 管理依赖
