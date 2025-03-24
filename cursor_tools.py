@@ -17,6 +17,7 @@ import shutil
 import subprocess
 import time
 import uuid
+import hashlib
 import re
 import argparse
 from datetime import datetime
@@ -48,7 +49,8 @@ EMOJI = {
     "FOLDER": "📁 ",
     "FILE": "📄 ",
     "STATS": "📊 ",
-    "RESET": "🔄 "
+    "RESET": "🔄 ",
+    "BACKUP": "💾 "
 }
 
 # 定义文件路径映射
@@ -56,17 +58,23 @@ CURSOR_PATHS: Dict[OSType, Dict[str, Callable[[], Path]]] = {
     "Windows": {
         "storage": lambda: Path(os.path.join(os.getenv("APPDATA", ""), "Cursor", "User", "globalStorage", "storage.json")),
         "version": lambda: Path(os.path.join(os.getenv("APPDATA", ""), "Cursor", "product.json")),
-        "updater": lambda: Path(os.path.join(os.getenv("LOCALAPPDATA", ""), "cursor-updater"))
+        "updater": lambda: Path(os.path.join(os.getenv("LOCALAPPDATA", ""), "cursor-updater")),
+        "machine_id": lambda: Path(os.path.join(os.getenv("APPDATA", ""), "Cursor", "machineId")),
+        "sqlite": lambda: Path(os.path.join(os.getenv("APPDATA", ""), "Cursor", "User", "globalStorage", "state.vscdb"))
     },
     "Darwin": {  # macOS
         "storage": lambda: Path(os.path.join(str(Path.home()), "Library", "Application Support", "Cursor", "User", "globalStorage", "storage.json")),
         "version": lambda: Path(os.path.join("/Applications", "Cursor.app", "Contents", "Resources", "app", "product.json")),
-        "updater": lambda: Path(os.path.join(str(Path.home()), "Library", "Application Support", "cursor-updater"))
+        "updater": lambda: Path(os.path.join(str(Path.home()), "Library", "Application Support", "cursor-updater")),
+        "machine_id": lambda: Path(os.path.join(str(Path.home()), "Library", "Application Support", "Cursor", "machineId")),
+        "sqlite": lambda: Path(os.path.join(str(Path.home()), "Library", "Application Support", "Cursor", "User", "globalStorage", "state.vscdb"))
     },
     "Linux": {
         "storage": lambda: Path(os.path.join(str(Path.home()), ".config", "Cursor", "User", "globalStorage", "storage.json")),
         "version": lambda: Path(os.path.join("/usr/share", "cursor", "resources", "app", "product.json")),
-        "updater": lambda: Path(os.path.join(str(Path.home()), ".config", "cursor-updater"))
+        "updater": lambda: Path(os.path.join(str(Path.home()), ".config", "cursor-updater")),
+        "machine_id": lambda: Path(os.path.join(str(Path.home()), ".config", "Cursor", "machineId")),
+        "sqlite": lambda: Path(os.path.join(str(Path.home()), ".config", "Cursor", "User", "globalStorage", "state.vscdb"))
     }
 }
 
@@ -111,7 +119,7 @@ def get_cursor_path(path_type: str) -> Path:
     """获取Cursor相关文件路径
 
     Args:
-        path_type: 路径类型，可选值: "storage", "version", "updater"
+        path_type: 路径类型，可选值: "storage", "version", "updater", "machine_id", "sqlite"
 
     Returns:
         对应的文件路径
@@ -278,6 +286,365 @@ def check_version_compatibility() -> bool:
     return True
 
 # 功能1: 重置设备ID
+class MachineIDResetter:
+    """重置Cursor设备ID的类，处理不同平台和版本的专用实现"""
+
+    def __init__(self):
+        """初始化MachineIDResetter类"""
+        system = get_system()
+
+        # 设置相关文件路径
+        self.storage_file = get_cursor_path("storage")
+        self.machine_id_file = get_cursor_path("machine_id")
+        self.sqlite_path = get_cursor_path("sqlite")
+
+    def generate_new_ids(self) -> dict:
+        """生成新的随机设备ID
+
+        Returns:
+            dict: 包含各种设备ID的字典
+        """
+        # 生成新的UUID
+        dev_device_id = str(uuid.uuid4())
+
+        # 生成新的machineId (SHA-256哈希，64个十六进制字符)
+        machine_id = hashlib.sha256(os.urandom(32)).hexdigest()
+
+        # 生成新的macMachineId (SHA-512哈希，128个十六进制字符)
+        mac_machine_id = hashlib.sha512(os.urandom(64)).hexdigest()
+
+        # 生成新的sqmId
+        sqm_id = "{" + str(uuid.uuid4()).upper() + "}"
+
+        # 更新机器ID文件
+        self.update_machine_id_file(dev_device_id)
+
+        # 返回所有生成的ID
+        return {
+            "telemetry.devDeviceId": dev_device_id,
+            "telemetry.macMachineId": mac_machine_id,
+            "telemetry.machineId": machine_id,
+            "telemetry.sqmId": sqm_id,
+            "storage.serviceMachineId": dev_device_id,
+        }
+
+    def update_machine_id_file(self, machine_id: str) -> bool:
+        """更新machineId文件
+
+        Args:
+            machine_id: 新的机器ID
+
+        Returns:
+            bool: 是否成功更新
+        """
+        try:
+            # 创建父目录（如果不存在）
+            os.makedirs(os.path.dirname(self.machine_id_file), exist_ok=True)
+
+            # 如果文件存在，创建备份
+            if os.path.exists(self.machine_id_file):
+                backup_path = f"{self.machine_id_file}.backup"
+                try:
+                    shutil.copy2(self.machine_id_file, backup_path)
+                    print_success(f"已创建machineId备份: {backup_path}")
+                except Exception as e:
+                    print_warning(f"创建machineId备份失败: {e}")
+
+            # 写入新的机器ID
+            with open(self.machine_id_file, "w", encoding="utf-8") as f:
+                f.write(machine_id)
+
+            print_success("已成功更新machineId文件")
+            return True
+
+        except Exception as e:
+            print_error(f"更新machineId文件失败: {e}")
+            return False
+
+    def update_storage_file(self, new_ids: dict) -> bool:
+        """更新storage.json文件中的设备ID
+
+        Args:
+            new_ids: 新生成的ID字典
+
+        Returns:
+            bool: 是否成功更新
+        """
+        try:
+            print_step(EMOJI["FILE"], f"正在检查storage文件: {self.storage_file}")
+
+            # 检查文件是否存在
+            if not os.path.exists(self.storage_file):
+                print_warning(f"未找到配置文件: {self.storage_file}")
+                print_step(EMOJI["FILE"], "将创建新的配置文件")
+                # 确保父目录存在
+                os.makedirs(os.path.dirname(self.storage_file), exist_ok=True)
+                config = {}
+            else:
+                # 检查文件权限
+                if not os.access(self.storage_file, os.R_OK | os.W_OK):
+                    print_error(f"没有足够的权限操作文件: {self.storage_file}")
+                    return False
+
+                # 读取现有配置
+                try:
+                    with open(self.storage_file, "r", encoding="utf-8") as f:
+                        config = json.load(f)
+                    print_success("成功读取配置文件")
+                except json.JSONDecodeError as e:
+                    print_warning(f"配置文件格式错误: {e}")
+                    print_warning("将创建新的配置数据")
+                    config = {}
+                except Exception as e:
+                    print_error(f"读取配置文件失败: {e}")
+                    return False
+
+            # 创建备份
+            if os.path.exists(self.storage_file):
+                backup_path = f"{self.storage_file}.bak"
+                try:
+                    shutil.copy2(self.storage_file, backup_path)
+                    print_success(f"已创建配置备份: {backup_path}")
+                except Exception as e:
+                    print_warning(f"创建配置备份失败: {e}")
+
+            # 更新配置数据
+            config.update(new_ids)
+
+            # 写入更新后的配置
+            with open(self.storage_file, "w", encoding="utf-8") as f:
+                json.dump(config, f, indent=4)
+
+            print_success("配置文件中的设备ID已更新")
+            return True
+
+        except Exception as e:
+            print_error(f"更新配置文件失败: {e}")
+            return False
+
+    def update_sqlite_db(self, new_ids: dict) -> bool:
+        """更新SQLite数据库中的设备ID
+
+        Args:
+            new_ids: 新生成的ID字典
+
+        Returns:
+            bool: 是否成功更新
+        """
+        try:
+            import sqlite3
+
+            print_step(EMOJI["FILE"], f"处理数据库: {self.sqlite_path}")
+
+            # 检查数据库文件是否存在
+            if not os.path.exists(self.sqlite_path):
+                print_warning(f"未找到数据库文件: {self.sqlite_path}")
+                return True  # 不影响整体流程
+
+            # 检查文件权限
+            if not os.access(self.sqlite_path, os.R_OK | os.W_OK):
+                print_warning(f"没有足够的权限操作数据库文件: {self.sqlite_path}")
+                return False
+
+            # 创建备份
+            backup_path = f"{self.sqlite_path}.bak"
+            try:
+                shutil.copy2(self.sqlite_path, backup_path)
+                print_success(f"已创建数据库备份: {backup_path}")
+            except Exception as e:
+                print_warning(f"创建数据库备份失败: {e}")
+
+            # 连接数据库
+            conn = sqlite3.connect(self.sqlite_path)
+            cursor = conn.cursor()
+
+            try:
+                # 开始事务
+                conn.execute("BEGIN TRANSACTION")
+
+                # 确保表存在
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS ItemTable (
+                        key TEXT PRIMARY KEY,
+                        value TEXT
+                    )
+                """)
+
+                # 更新ID
+                updates = [
+                    (key, value) for key, value in new_ids.items()
+                ]
+
+                for key, value in updates:
+                    cursor.execute("""
+                        INSERT OR REPLACE INTO ItemTable (key, value)
+                        VALUES (?, ?)
+                    """, (key, value))
+                    print_step(EMOJI["INFO"], f"更新键值对: {key}")
+
+                # 提交事务
+                conn.commit()
+                print_success("数据库中的设备ID已更新")
+                return True
+
+            except Exception as e:
+                conn.rollback()
+                print_error(f"数据库更新失败: {e}")
+                return False
+
+            finally:
+                conn.close()
+
+        except ImportError:
+            print_warning("未安装sqlite3模块，跳过数据库处理")
+            return True
+
+        except Exception as e:
+            print_error(f"处理数据库时出错: {e}")
+            return False
+
+    def update_system_ids(self, new_ids: dict) -> bool:
+        """更新系统级设备ID
+
+        Args:
+            new_ids: 新生成的ID字典
+
+        Returns:
+            bool: 是否成功更新
+        """
+        try:
+            system = get_system()
+            print_step(EMOJI["INFO"], "正在更新系统级设备ID")
+
+            if system == "Windows":
+                self._update_windows_machine_guid()
+            elif system == "Darwin":  # macOS
+                self._update_macos_platform_uuid(new_ids)
+
+            print_success("系统级设备ID已更新")
+            return True
+
+        except Exception as e:
+            print_error(f"更新系统级设备ID失败: {e}")
+            return False
+
+    def _update_windows_machine_guid(self) -> bool:
+        """更新Windows MachineGuid
+
+        Returns:
+            bool: 是否成功更新
+        """
+        try:
+            if get_system() != "Windows":
+                return False
+
+            import winreg
+
+            print_step(EMOJI["INFO"], "更新Windows MachineGuid")
+
+            # 打开注册表键
+            try:
+                key = winreg.OpenKey(
+                    winreg.HKEY_LOCAL_MACHINE,
+                    "SOFTWARE\\Microsoft\\Cryptography",
+                    0,
+                    winreg.KEY_WRITE | winreg.KEY_WOW64_64KEY
+                )
+            except PermissionError:
+                print_error("没有足够的权限操作注册表，请以管理员身份运行")
+                return False
+
+            # 生成新的GUID并写入
+            new_guid = str(uuid.uuid4())
+            winreg.SetValueEx(key, "MachineGuid", 0, winreg.REG_SZ, new_guid)
+            winreg.CloseKey(key)
+
+            print_success("Windows MachineGuid已更新")
+            return True
+
+        except ImportError:
+            print_warning("无法导入winreg模块，跳过Windows MachineGuid更新")
+            return False
+
+        except Exception as e:
+            print_error(f"更新Windows MachineGuid失败: {e}")
+            return False
+
+    def _update_macos_platform_uuid(self, new_ids: dict) -> bool:
+        """更新macOS平台UUID
+
+        Args:
+            new_ids: 新生成的ID字典
+
+        Returns:
+            bool: 是否成功更新
+        """
+        try:
+            if get_system() != "Darwin":
+                return False
+
+            uuid_file = "/var/root/Library/Preferences/SystemConfiguration/com.apple.platform.uuid.plist"
+
+            if os.path.exists(uuid_file):
+                print_step(EMOJI["INFO"], "更新macOS平台UUID")
+
+                # 使用sudo执行plutil命令
+                cmd = f'sudo plutil -replace "UUID" -string "{new_ids["telemetry.macMachineId"]}" "{uuid_file}"'
+                result = os.system(cmd)
+
+                if result == 0:
+                    print_success("macOS平台UUID已更新")
+                    return True
+                else:
+                    print_error("执行plutil命令失败")
+                    return False
+            else:
+                print_warning(f"UUID文件不存在: {uuid_file}，跳过macOS平台UUID更新")
+                return True
+
+        except Exception as e:
+            print_error(f"更新macOS平台UUID失败: {e}")
+            return False
+
+    def reset_machine_ids(self) -> bool:
+        """重置所有设备ID
+
+        Returns:
+            bool: 是否成功重置
+        """
+        try:
+            print_step(EMOJI["RESET"], "开始重置设备ID")
+
+            # 生成新的ID
+            print_step(EMOJI["INFO"], "生成新的设备ID")
+            new_ids = self.generate_new_ids()
+
+            # 更新配置文件
+            if not self.update_storage_file(new_ids):
+                print_warning("配置文件更新失败，将继续尝试其他更新")
+
+            # 更新数据库
+            self.update_sqlite_db(new_ids)
+
+            # 更新系统ID
+            self.update_system_ids(new_ids)
+
+            # 显示结果
+            print_success("设备 ID 已成功重置。新的设备 ID 为:")
+            for key, value in new_ids.items():
+                print(f"{EMOJI['INFO']} {key}: {GREEN}{value}{RESET}")
+
+            return True
+
+        except PermissionError as e:
+            print_error(f"权限不足: {e}")
+            print_warning("请尝试以管理员/超级用户身份运行此程序")
+            return False
+
+        except Exception as e:
+            print_error(f"重置设备ID失败: {e}")
+            return False
+
 def reset_cursor_id() -> bool:
     """重置 Cursor 的设备 ID
 
@@ -288,204 +655,12 @@ def reset_cursor_id() -> bool:
         bool: 操作是否成功完成
     """
     try:
-        print_step(EMOJI["RESET"], "开始重置设备ID")
-
-        # 生成新的随机设备ID
-        device_ids = generate_new_device_ids()
-
-        # 更新配置文件
-        update_storage_file(device_ids)
-
-        # 更新数据库
-        update_sqlite_database(device_ids)
-
-        # 显示结果
-        print_success("设备 ID 已成功重置。新的设备 ID 为: \n")
-        print(
-            json.dumps(device_ids, indent=2, ensure_ascii=False)
-        )
-        return True
-    except FileNotFoundError as e:
-        print_error(f"文件未找到: {e}")
-        return False
-    except PermissionError as e:
-        print_error(f"权限不足: {e}")
-        print_warning("请尝试以管理员/超级用户身份运行此程序")
-        return False
-    except json.JSONDecodeError as e:
-        print_error(f"JSON解析错误: {e}")
-        return False
+        # 使用改进的MachineIDResetter类来重置设备ID
+        resetter = MachineIDResetter()
+        return resetter.reset_machine_ids()
     except Exception as e:
         print_error(f"重置设备ID失败: {e}")
         return False
-
-def generate_new_device_ids() -> dict:
-    """生成新的随机设备ID
-
-    Returns:
-        dict: 包含各种设备ID的字典
-    """
-    return {
-        "machineId": os.urandom(32).hex(),
-        "macMachineId": os.urandom(32).hex(),
-        "devDeviceId": str(uuid.uuid4()),
-        "sqmId": str(uuid.uuid4())
-    }
-
-def update_storage_file(device_ids: dict) -> None:
-    """更新storage.json配置文件中的设备ID
-
-    Args:
-        device_ids (dict): 新生成的设备ID字典
-
-    Raises:
-        FileNotFoundError: 如果文件不存在且无法创建
-        PermissionError: 如果没有足够的文件权限
-        json.JSONDecodeError: 如果JSON解析失败
-    """
-    storage_file = get_cursor_path("storage")
-
-    # 检查文件权限
-    if storage_file.exists() and not os.access(storage_file, os.R_OK | os.W_OK):
-        raise PermissionError(f"没有足够的权限操作文件: {storage_file}")
-
-    # 确保父目录存在
-    storage_file.parent.mkdir(parents=True, exist_ok=True)
-
-    # 备份原始文件
-    random_suffix = os.urandom(1).hex().upper()
-    backup_filename = f"{storage_file}.{datetime.now().strftime('%Y%m%d%H%M%S')}{random_suffix}.bak"
-
-    if storage_file.exists():
-        try:
-            shutil.copy2(storage_file, backup_filename)
-            print_success(f"已创建备份: {backup_filename}")
-        except Exception as e:
-            print_warning(f"创建备份失败: {e}")
-
-    # 读取或创建配置数据
-    if not storage_file.exists():
-        data = {}
-        print_warning("未找到配置文件，将创建新的配置文件")
-    else:
-        try:
-            with open(storage_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            print_success("成功读取配置文件")
-        except json.JSONDecodeError as e:
-            print_warning(f"配置文件格式错误: {e}")
-            print_warning("将创建新的配置数据")
-            data = {}
-
-    # 更新配置数据
-    data["telemetry.machineId"] = device_ids["machineId"]
-    data["telemetry.macMachineId"] = device_ids["macMachineId"]
-    data["telemetry.devDeviceId"] = device_ids["devDeviceId"]
-    data["telemetry.sqmId"] = device_ids["sqmId"]
-
-    # 写入更新后的配置
-    with open(storage_file, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2)
-
-    print_success("配置文件中的设备ID已更新")
-
-def update_sqlite_database(device_ids: dict) -> None:
-    """更新SQLite数据库中的设备ID
-
-    Args:
-        device_ids (dict): 新生成的设备ID字典
-    """
-    try:
-        import sqlite3
-
-        # 获取 globalStorage 目录下的 state.vscdb 文件
-        system = get_system()
-        if system == "Windows":
-            db_path = Path(os.path.join(os.getenv("APPDATA", ""), "Cursor", "User", "globalStorage", "state.vscdb"))
-        elif system == "Darwin":  # macOS
-            db_path = Path(os.path.join(str(Path.home()), "Library", "Application Support", "Cursor", "User", "globalStorage", "state.vscdb"))
-        elif system == "Linux":
-            db_path = Path(os.path.join(str(Path.home()), ".config", "Cursor", "User", "globalStorage", "state.vscdb"))
-
-        if not db_path.exists():
-            print_warning(f"未找到数据库文件: {db_path}")
-            return
-
-        # 检查文件权限
-        if not os.access(db_path, os.R_OK | os.W_OK):
-            print_warning(f"没有足够的权限操作数据库文件: {db_path}")
-            return
-
-        print_step(EMOJI["FILE"], f"处理数据库: {db_path}")
-
-        # 备份数据库文件
-        random_suffix = os.urandom(1).hex().upper()
-        backup_db_path = f"{db_path}.{datetime.now().strftime('%Y%m%d%H%M%S')}{random_suffix}.bak"
-        shutil.copy2(db_path, backup_db_path)
-        print_success(f"已创建数据库备份: {backup_db_path}")
-
-        # 连接数据库并更新设备ID相关记录
-        conn = sqlite3.connect(db_path)
-
-        try:
-            # 开始事务
-            conn.execute("BEGIN TRANSACTION")
-            cursor = conn.cursor()
-
-            # 查询表结构
-            cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
-            tables = cursor.fetchall()
-
-            if ('ItemTable',) in tables:
-                # 查找与设备ID相关的记录
-                cursor.execute("SELECT key, value FROM ItemTable WHERE key LIKE '%machineId%' OR key LIKE '%deviceId%' OR key LIKE '%telemetry%'")
-                id_records = cursor.fetchall()
-
-                if id_records:
-                    print_step(EMOJI["STATS"], f"找到 {len(id_records)} 条设备ID相关记录")
-
-                    # 准备批量更新
-                    updates = []
-
-                    for key, _ in id_records:
-                        if "machineId" in key and "mac" not in key:
-                            updates.append((f'"{device_ids["machineId"]}"', key))
-                        elif "macMachineId" in key:
-                            updates.append((f'"{device_ids["macMachineId"]}"', key))
-                        elif "devDeviceId" in key:
-                            updates.append((f'"{device_ids["devDeviceId"]}"', key))
-                        elif "sqmId" in key:
-                            updates.append((f'"{device_ids["sqmId"]}"', key))
-
-                    # 批量执行更新
-                    cursor.executemany("UPDATE ItemTable SET value = ? WHERE key = ?", updates)
-
-                    # 验证更新
-                    cursor.execute("SELECT COUNT(*) FROM ItemTable WHERE (key LIKE '%machineId%' AND value LIKE ?) OR (key LIKE '%deviceId%' AND value LIKE ?) OR (key LIKE '%sqmId%' AND value LIKE ?)",
-                                  (f'%{device_ids["machineId"]}%', f'%{device_ids["devDeviceId"]}%', f'%{device_ids["sqmId"]}%'))
-                    updated_count = cursor.fetchone()[0]
-
-                    if updated_count > 0:
-                        conn.commit()
-                        print_success(f"数据库中的设备ID已更新 ({updated_count}/{len(updates)} 条记录)")
-                    else:
-                        conn.rollback()
-                        print_warning("数据库更新验证失败，已回滚更改")
-                else:
-                    print_warning("未在数据库中找到设备ID相关记录")
-            else:
-                print_warning("数据库结构不符合预期，无法更新")
-
-        except Exception as e:
-            conn.rollback()
-            print_warning(f"数据库更新失败: {e}")
-        finally:
-            conn.close()
-
-    except ImportError:
-        print_warning("未安装 sqlite3 模块，跳过数据库处理")
-    except Exception as e:
-        print_warning(f"处理数据库时出错: {e}")
 
 # 功能2: 禁用自动更新
 def disable_auto_update() -> bool:
