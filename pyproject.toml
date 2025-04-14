@@ -1,7 +1,7 @@
 [project]
-name = "cursor-pro-free"
+name = "cursor-history-links"
 version = "1.0.0"
-description = "Cursor 工具集"
+description = "Cursor 历史版本下载链接"
 authors = [
     {name = "Eric",email = "bo.liang0212@outlook.com"}
 ]
@@ -13,8 +13,8 @@ dependencies = [
 ]
 
 [tool.poetry]
-name = "cursor-pro-free"
-description = "Cursor 工具集"
+name = "cursor-history-links"
+description = "Cursor 历史版本下载链接"
 authors = ["Eric <bo.liang0212@outlook.com>"]
 readme = "README.md"
 package-mode = false

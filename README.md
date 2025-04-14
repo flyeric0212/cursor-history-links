@@ -1,62 +1,22 @@
-# Cursor Pro Free
+# Cursor History Links
 
-【支持最新的 0.47.x】一款解决 Cursor 编辑器试用限制的开源工具，帮助开发者无限制使用 AI 编码功能。
+## 项目介绍
 
-## Cursor 工具集
+Cursor历史版本下载链接是一个专为开发者设计的工具，提供对Cursor编辑器各历史版本安装包的一站式访问。本项目自动抓取并维护Cursor各平台(Windows、macOS、Linux)的历史版本下载链接，让用户可以根据需要安装或降级到特定版本。
 
-当使用 Cursor 编辑器（版本 0.46 到 0.47）一段时间后，可能会遇到以下提示：
+### 主要功能
 
-- "You've reached your trial request limit."（您已达到试用请求限制）
-- "Too many free trial accounts used on this machine. Please upgrade to pro."（此机器上使用了太多免费试用账户，请升级到专业版）
+- 自动收集并更新Cursor编辑器所有历史版本的下载链接
+- 提供Windows、macOS和Linux平台的安装包下载
+- 支持x64和arm64架构
+- 按版本号和发布日期组织，便于查找
+- 定期自动更新，确保链接有效性
 
-### 功能列表
+### 技术实现
 
-- ✅ 重置设备 ID，解除试用限制
-- ✅ 支持 Windows、macOS 和 Linux 全平台
-- ✅ 提供一键执行脚本和可执行文件两种使用方式
-- ✅ 自动备份原始配置文件
-- ✅ 提供 Cursor 历史版本下载链接
-- ✅ 定期更新支持最新版本
+本项目使用Python编写，通过GitHub Actions自动运行，定期检查新版本并更新下载链接列表。所有版本数据存储在version-history.json文件中，并在README.md中以表格形式呈现。
 
-### 使用方法
-
-#### 方法一：GitHub 远程一键执行（推荐）
-
-**Windows 用户**:
-```powershell
-powershell -Command "& {[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -useb https://raw.githubusercontent.com/flyeric0212/cursor-pro-free/main/scripts/run.ps1 | iex}"
-```
-
-**macOS/Linux 用户**:
-```bash
-curl -fsSL https://raw.githubusercontent.com/flyeric0212/cursor-pro-free/main/scripts/run.sh | bash
-```
-> 注意：远程脚本会自动设置执行权限。如果遇到权限问题，可以手动下载并执行：
-> ```bash
-> curl -fsSL -o run.sh https://raw.githubusercontent.com/flyeric0212/cursor-pro-free/main/scripts/run.sh
-> chmod +x run.sh
-> ./run.sh
-> ```
-
-#### 方法二：下载可执行文件
-
-1. 从 [Releases](https://github.com/flyeric0212/cursor-pro-free/releases) 页面下载适合您操作系统的可执行文件
-2. 运行下载的可执行文件
-3. 按照提示操作，选择"重置 Cursor 设备 ID"选项
-
-
-### 注意事项
-
-- 每次遇到试用限制时，都需要重新运行此脚本
-- 脚本会自动备份原始配置文件，以防出现问题
-- 如果 Cursor 在后台运行，重置可能不会成功
-- 本工具支持最新的 Cursor 0.47.x 版本
-
-### 免责声明
-
-本工具仅供学习和研究目的使用。使用本工具可能违反 Cursor 的服务条款。使用者需自行承担使用本工具的风险和责任。
-
-## Cursor 历史下载链接
+## 历史下载表格
 
 Cursor changelog：[Official Link](https://www.cursor.com/changelog)
 
