@@ -16,6 +16,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger("cursor_updater")
 
+# 禁用httpx的日志
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
 # 获取东八区时间（UTC+8）
 def get_utc8_time() -> datetime:
     """返回东八区（UTC+8）的当前时间"""
@@ -95,20 +98,66 @@ async def fetch_latest_download_url(platform: str) -> Optional[str]:
         下载URL或None（如果请求失败）
     """
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(
-                f"https://www.cursor.com/api/download?platform={platform}&releaseTrack=latest",
-                headers={
-                    'User-Agent': 'Cursor-Version-Checker',
-                    'Cache-Control': 'no-cache',
-                }
-            )
+        # 创建一个支持重定向的HTTP客户端
+        async with httpx.AsyncClient(
+            timeout=15.0,  # 增加超时时间
+            follow_redirects=True  # 启用自动重定向跟随
+        ) as client:
+            # 构建请求URL
+            base_url = "https://cursor.com"  # 直接使用不带www的域名，避免重定向
+            url = f"{base_url}/api/download?platform={platform}&releaseTrack=latest"
 
+            # 设置更完整的请求头
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'application/json, text/plain, */*',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+                'Referer': 'https://cursor.com/',
+                'Origin': 'https://cursor.com',
+                'Connection': 'keep-alive',
+            }
+
+            # 发送请求并处理响应
+            response = await client.get(url, headers=headers)
+
+            # 只记录非200状态码的请求，减少日志输出
             if response.status_code != 200:
-                raise Exception(f"HTTP error! status: {response.status_code}")
+                logger.info(f"请求URL: {url}, 状态码: {response.status_code}, 最终URL: {response.url}")
 
-            data = response.json()
-            return data.get("downloadUrl")
+            # 检查状态码
+            if response.status_code != 200:
+                logger.warning(f"平台 {platform} 请求返回非200状态码: {response.status_code}, URL: {response.url}")
+                # 如果是重定向相关状态码但自动重定向失败，尝试手动处理
+                if response.status_code in [301, 302, 307, 308]:
+                    redirect_url = response.headers.get('Location')
+                    if redirect_url:
+                        logger.info(f"尝试手动跟随重定向: {redirect_url}")
+                        # 如果重定向URL是相对路径，转换为绝对URL
+                        if not redirect_url.startswith('http'):
+                            redirect_url = f"{base_url.rstrip('/')}/{redirect_url.lstrip('/')}"
+                        # 发送新请求
+                        response = await client.get(redirect_url, headers=headers)
+                        if response.status_code != 200:
+                            raise Exception(f"重定向后仍然失败，状态码: {response.status_code}")
+                else:
+                    raise Exception(f"HTTP error! status: {response.status_code}")
+
+            # 解析JSON响应
+            try:
+                data = response.json()
+                download_url = data.get("downloadUrl")
+                if not download_url:
+                    logger.warning(f"平台 {platform} 的响应中没有downloadUrl字段")
+                return download_url
+            except json.JSONDecodeError as e:
+                logger.error(f"解析JSON响应失败: {e}, 响应内容: {response.text[:200]}...")
+                return None
+
+    except httpx.RequestError as e:
+        logger.error(f"请求平台 {platform} 时发生网络错误: {e}")
+        return None
     except Exception as error:
         logger.error(f"获取平台 {platform} 的下载URL时出错: {error}")
         return None
