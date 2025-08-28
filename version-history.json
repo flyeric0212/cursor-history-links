@@ -1,6 +1,19 @@
 {
   "versions": [
     {
+      "version": "1.5.7",
+      "date": "2025-08-28",
+      "platforms": {
+        "darwin-universal": "https://downloads.cursor.com/production/6aa7b3af0d578b9a3aa3ab443571e1a51ebb4e83/darwin/universal/Cursor-darwin-universal.dmg",
+        "darwin-x64": "https://downloads.cursor.com/production/6aa7b3af0d578b9a3aa3ab443571e1a51ebb4e83/darwin/x64/Cursor-darwin-x64.dmg",
+        "darwin-arm64": "https://downloads.cursor.com/production/6aa7b3af0d578b9a3aa3ab443571e1a51ebb4e83/darwin/arm64/Cursor-darwin-arm64.dmg",
+        "win32-x64": "https://downloads.cursor.com/production/6aa7b3af0d578b9a3aa3ab443571e1a51ebb4e83/win32/x64/system-setup/CursorSetup-x64-1.5.7.exe",
+        "win32-arm64": "https://downloads.cursor.com/production/6aa7b3af0d578b9a3aa3ab443571e1a51ebb4e83/win32/arm64/system-setup/CursorSetup-arm64-1.5.7.exe",
+        "linux-x64": "https://downloads.cursor.com/production/6aa7b3af0d578b9a3aa3ab443571e1a51ebb4e83/linux/x64/Cursor-1.5.7-x86_64.AppImage",
+        "linux-arm64": "https://downloads.cursor.com/production/6aa7b3af0d578b9a3aa3ab443571e1a51ebb4e83/linux/arm64/Cursor-1.5.7-aarch64.AppImage"
+      }
+    },
+    {
       "version": "1.5.6",
       "date": "2025-08-28",
       "platforms": {
@@ -1283,19 +1296,6 @@
         "win32-arm64": "https://downloader.cursor.sh/builds/250205buadkzpea/windows/nsis/arm64",
         "linux-x64": "https://downloader.cursor.sh/builds/250205buadkzpea/linux/appImage/x64",
         "linux-arm64": "https://downloader.cursor.sh/builds/250205buadkzpea/linux/appImage/arm64"
-      }
-    },
-    {
-      "version": "0.45.1",
-      "date": "2025-01-21",
-      "platforms": {
-        "darwin-universal": "https://downloader.cursor.sh/builds/2501213ljml5byg/mac/installer/universal",
-        "darwin-x64": "https://downloader.cursor.sh/builds/2501213ljml5byg/mac/installer/x64",
-        "darwin-arm64": "https://downloader.cursor.sh/builds/2501213ljml5byg/mac/installer/arm64",
-        "win32-x64": "https://downloader.cursor.sh/builds/2501213ljml5byg/windows/nsis/x64",
-        "win32-arm64": "https://downloader.cursor.sh/builds/2501213ljml5byg/windows/nsis/arm64",
-        "linux-x64": "https://downloader.cursor.sh/builds/2501213ljml5byg/linux/appImage/x64",
-        "linux-arm64": "https://downloader.cursor.sh/builds/2501213ljml5byg/linux/appImage/arm64"
       }
     }
   ]
