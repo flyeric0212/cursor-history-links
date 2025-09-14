@@ -86,6 +86,28 @@ def format_date(date: datetime) -> str:
     """将日期对象格式化为YYYY-MM-DD格式的字符串"""
     return date.strftime('%Y-%m-%d')
 
+# 版本排序辅助函数
+def version_key(version_str: str) -> List[Any]:
+    """将版本字符串转换为可比较的元组，用于正确的语义版本排序
+    
+    Args:
+        version_str: 版本字符串，如 '1.6.14' 或 'v1.6.14'
+        
+    Returns:
+        可比较的列表，包含整数和字符串部分
+    """
+    # 移除可能的 'v' 前缀
+    version_str = version_str.lstrip('v')
+    # 分割版本号并转换为整数
+    parts = []
+    for part in version_str.split('.'):
+        try:
+            parts.append(int(part))
+        except ValueError:
+            # 如果包含非数字字符，保持原字符串
+            parts.append(part)
+    return parts
+
 # 获取平台的最新下载URL
 async def fetch_latest_download_url(platform: str) -> Optional[str]:
     """
@@ -314,7 +336,7 @@ async def update_readme(force_update=False) -> bool:
         history["versions"].append(new_entry)
 
     # 按版本排序（最新的在前）
-    history["versions"].sort(key=lambda x: x["version"], reverse=True)
+    history["versions"].sort(key=lambda x: version_key(x["version"]), reverse=True)
 
     # 删除重复的版本
     unique_versions = {}
@@ -541,6 +563,7 @@ __all__ = [
     'save_version_history',
     'extract_version',
     'format_date',
+    'version_key',
     'get_utc8_time',
     'main'
 ]
