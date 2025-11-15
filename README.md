@@ -20,7 +20,7 @@ Cursor历史版本下载链接是一个专为开发者设计的工具，提供�
 
 Cursor changelog：[Official Link](https://www.cursor.com/changelog)
 
-官网最新版本：[Official Link](https://www.cursor.com/cn/downloads)
+官网最新版本：[Official Link](https://cursor.com/cn/download)
 
 脚本最后更新: `2025-11-14 09:06:19`
 
